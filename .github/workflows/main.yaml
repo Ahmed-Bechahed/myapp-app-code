@@ -6,6 +6,37 @@ on:
       - main
 
 jobs:
+  provision_eks:
+    runs-on: ubuntu-latest
+    needs: build_and_push
+    steps:
+      - name: Checkout Terraform code
+        uses: actions/checkout@v3
+        with:
+          repository: Ahmed-Bechahed/myapp-eks-terraform  
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: ToDo-App/
+
+      - name: Set up AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-west-2  
+
+      - name: Terraform Init
+        run: |
+          terraform init
+
+      - name: Terraform Plan
+        run: |
+          terraform plan
+
+      - name: Terraform Apply
+        run: |
+          terraform apply -auto-approve
+
+
   build_and_push:
     runs-on: ubuntu-latest
     steps:
@@ -35,9 +66,8 @@ jobs:
       - name: Checkout manifest repo
         uses: actions/checkout@v3
         with:
-          repository: Ahmed-Bechahed/kube_manifest
+          repository: Ahmed-Bechahed/myapp-kube-manifest
           token: ${{ secrets.GITHUB_TOKEN }}
-          path: kube_manifest
 
       - name: Configure Git
         run: |
@@ -55,4 +85,4 @@ jobs:
         run: |
           git add manifest/deployment.yaml
           git commit -m "new build with imgTag build-$TAG"
-          git push https://${{ secrets.GITHUB_PERSONAL_TOKEN }}@github.com/Ahmed-Bechahed/kube_manifest.git
+          git push https://${{ secrets.GITHUB_PERSONAL_TOKEN }}@github.com/Ahmed-Bechahed/myapp-kube-manifest.git
